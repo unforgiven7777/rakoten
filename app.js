@@ -29,17 +29,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const imageUpload = document.getElementById('image-upload');
     const previewSection = document.getElementById('preview-section');
     const imagePreview = document.getElementById('image-preview');
-    
+
     const ocrBtn = document.getElementById('ocr-btn');
     const loadingEl = document.getElementById('loading');
     const errorMessageEl = document.getElementById('error-message');
-    
+
     const resultSection = document.getElementById('result-section');
     const detectedSkuEl = document.getElementById('detected-sku');
     const parsedItemKeyEl = document.getElementById('parsed-item-key');
     const parsedShopEl = document.getElementById('parsed-shop');
     const parsedNumberEl = document.getElementById('parsed-number');
-    
+
     const resolvedUrlEl = document.getElementById('resolved-url');
     const openRakutenBtn = document.getElementById('open-rakuten-btn');
     const ocrRawTextEl = document.getElementById('ocr-raw-text');
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const imageUrl = URL.createObjectURL(file);
         imagePreview.src = imageUrl;
         previewSection.style.display = 'block';
-        
+
         ocrBtn.disabled = false;
     });
 
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const text = result.data.text;
             ocrRawTextEl.textContent = text;
-            
+
             processOcrText(text);
 
         } catch (error) {
@@ -113,14 +113,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- テキスト解析とURL解決 ---
     function processOcrText(text) {
-        // 余分な空白や改行をそのままにしてまず正規表現で探す
+        // 余分な空白や改行をすべて取り除く（途中で改行されたSKUを1行にするため）
+        // 例: "RA-comicset:1\n2925796" -> "RA-comicset:12925796"
+        const cleanText = text.replace(/\s+/g, '');
+
         // SKUの基本形: RA-shop_name:10242457
-        // ブレ対応: "RA - mottainaihonpo:10242457", "RA_mottainaihonpo:10242457",
-        //           "RA-mottainaihonpo：10242457"
+        // ブレ対応: 間の空白は除去済みなので、シンプルな正規表現で抽出可能
         // 許可する記号: ハイフン、アンダースコア、コロン(半角全角)
-        // [A-Za-z0-9_-] で店名、数字で商品番号
-        const skuRegex = /R\s*A\s*[-\_]\s*([A-Za-z0-9\-\_]+)\s*[:：]\s*(\d+)/i;
-        const match = text.match(skuRegex);
+        const skuRegex = /RA[-_]([A-Za-z0-9-_]+)[:：](\d+)/i;
+        const match = cleanText.match(skuRegex);
 
         if (!match) {
             // 文字列が見つからない場合
@@ -129,8 +130,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const rawMatch = match[0];
-        const shopName = match[1].trim();
-        const itemNumber = match[2].trim();
+        const shopName = match[1];
+        const itemNumber = match[2];
 
         // SKU形式の最低限のバリデーション（店名も番号も取れているか）
         if (!shopName || !itemNumber) {
@@ -166,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 完成済みの楽天URLをセットして表示
         const finalUrl = dbRecord.rakuten_url;
         resolvedUrlEl.textContent = finalUrl;
-        
+
         openRakutenBtn.href = finalUrl;
 
         // UI切り替え
