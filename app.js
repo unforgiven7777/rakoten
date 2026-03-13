@@ -63,8 +63,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- エラー表示・クリア ---
-    function showError(message) {
-        errorMessageEl.textContent = message;
+    function showError(message, rawText = "") {
+        if (rawText) {
+            errorMessageEl.innerHTML = `${message}<br><br><span style="font-size: 0.8em; color: #666; word-break: break-all;">[OCR認識内容（デバッグ用）]:<br>${rawText}</span>`;
+        } else {
+            errorMessageEl.textContent = message;
+        }
         errorMessageEl.style.display = 'block';
         resultSection.style.display = 'none';
         loadingEl.style.display = 'none';
@@ -131,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const match = cleanText.match(skuRegex);
 
         if (!match) {
-            showError("SKUを検出できませんでした");
+            showError("SKUを検出できませんでした", cleanText);
             return;
         }
 
