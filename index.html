@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eBay用 SKU読み取りアプリ</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Tesseract.js for OCR -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>SKU読み取りアプリ</h1>
+        
+        <p class="description">
+            eBayの注文画面スクリーンショットをアップロードし、楽天仕入れ用の管理キー(SKU)を読み取ります。
+        </p>
+
+        <!-- 画像アップロード領域 -->
+        <div class="upload-section">
+            <label for="image-upload" class="upload-btn">
+                <span>スクリーンショットを選択</span>
+                <input type="file" id="image-upload" accept="image/*">
+            </label>
+        </div>
+
+        <!-- プレビュー領域 -->
+        <div class="preview-section" id="preview-section" style="display: none;">
+            <p>【画像プレビュー】</p>
+            <img id="image-preview" src="" alt="アップロードされた画像">
+        </div>
+
+        <!-- アクション領域 -->
+        <div class="action-section">
+            <button id="ocr-btn" class="ocr-btn" disabled>OCRで読み取る</button>
+        </div>
+
+        <!-- ローディング表示 -->
+        <div id="loading" class="loading" style="display: none;">
+            <p>読み取り中...少々お待ちください</p>
+            <div class="spinner"></div>
+        </div>
+
+        <!-- エラーメッセージ表示 -->
+        <div id="error-message" class="error-message" style="display: none;"></div>
+
+        <!-- 結果表示領域 -->
+        <div id="result-section" class="result-section" style="display: none;">
+            <h2>抽出結果</h2>
+
+            <div class="result-card">
+                <div class="result-item">
+                    <span class="label">検出SKU文字列:</span>
+                    <span id="detected-sku" class="value"></span>
+                </div>
+                <div class="result-item">
+                    <span class="label">管理キー (item_key):</span>
+                    <span id="parsed-item-key" class="value highlight"></span>
+                </div>
+                <div class="result-details">
+                    <p>店舗名: <span id="parsed-shop"></span></p>
+                    <p>商品番号: <span id="parsed-number"></span></p>
+                </div>
+            </div>
+
+            <div class="action-card">
+                <h3>対応する楽天URL</h3>
+                <p id="resolved-url" class="resolved-url"></p>
+                
+                <a href="#" id="open-rakuten-btn" class="link-btn" target="_blank" rel="noopener noreferrer">
+                    楽天商品ページを開く
+                </a>
+            </div>
+
+            <details class="ocr-raw-details">
+                <summary>OCR全テキスト (デバッグ用)</summary>
+                <div id="ocr-raw-text" class="ocr-raw-text"></div>
+            </details>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
