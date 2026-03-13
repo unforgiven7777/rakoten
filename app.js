@@ -114,24 +114,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- テキスト解析とURL解決 ---
     function processOcrText(text) {
         // 余分な空白や改行をすべて取り除く（途中で改行されたSKUを1行にするため）
-        // 例: "RA-comicset:1\n2925796" -> "RA-comicset:12925796"
-        const cleanText = text.replace(/\s+/g, '');
+        let cleanText = text.replace(/\s+/g, '');
+
+        // OCRの誤認識対策:
+        // 数字の「1」が、アルファベット小文字の「l」や大文字の「I」、パイプ「|」などに
+        // 誤認されているケースを吸収するため、後半の数字部分を探す前に
+        // 該当する文字をいったん「1」に置換するというよりは、
+        // 正規表現そのものを柔軟にして、数値とみなせるものを広く取る。
 
         // SKUの基本形: RA-shop_name:10242457
-        // ブレ対応: 間の空白は除去済みなので、シンプルな正規表現で抽出可能
-        // 許可する記号: ハイフン、アンダースコア、コロン(半角全角)
-        const skuRegex = /RA[-_]([A-Za-z0-9-_]+)[:：](\d+)/i;
+        // [ブレ対応]
+        // - ハイフンは -, _, ― など
+        // - コロンは :, ：, |, l, I など（OCRで誤認されやすいため広く取る）
+        // - 続く文字群を「商品番号」とみなす
+        const skuRegex = /RA[-_―]([A-Za-z0-9-_]+)[:：|lI1]([0-9lI]+)/i;
         const match = cleanText.match(skuRegex);
 
         if (!match) {
-            // 文字列が見つからない場合
             showError("SKUを検出できませんでした");
             return;
         }
 
         const rawMatch = match[0];
         const shopName = match[1];
-        const itemNumber = match[2];
+        // 商品番号部分に混じった l や I を 1 に変換して救済
+        const itemNumber = match[2].replace(/[lI]/gi, '1');
 
         // SKU形式の最低限のバリデーション（店名も番号も取れているか）
         if (!shopName || !itemNumber) {
